@@ -4,6 +4,7 @@ const {
     inquirerMenu,
     inquirerPausa,
     leerInput,
+    listarLugares,
 } = require('./helpers/inquirer');
 const Busquedas = require('./models/busquedas');
 
@@ -16,23 +17,39 @@ const main = async () => {
 
         switch (opt) {
             case 1:
-                // TODO: Mostrar mensaje
+                // Mostrar mensaje
                 const lugar = await leerInput('Ciudad: ');
-                await busquedas.ciudad(lugar);
-                // TODO: Buscar los lugares
-                // TODO: Seleccionar el lugar
-                // TODO: Clima
-                // TODO: Mostrar resultados
+                // Buscar los lugares
+                const lugares = await busquedas.buscarCiudades(lugar);
+                // Seleccionar el lugar
+                const id = await listarLugares(lugares);
+                if (id === 0) continue;
+                const { nombre, lng, lat } = lugares.find((l) => l.id === id);
+                // Guardar DB
+                busquedas.agregarHistorial(nombre);
+
+                // Clima
+                const { desc, min, max, temp } = await busquedas.climaLugar(
+                    lat,
+                    lng
+                );
+                // Mostrar resultados
+                console.clear();
                 console.log('\nInfomarmación de la ciudad\n'.green);
-                console.log('Ciudad: ');
-                console.log('Lat: ');
-                console.log('Lng: ');
-                console.log('Temperatura: ');
-                console.log('Mínima: ');
-                console.log('Máxima: ');
+                console.log('Ciudad: ', nombre.green);
+                console.log('Lat: ', lat);
+                console.log('Lng: ', lng);
+                console.log('Temperatura: ', temp);
+                console.log('Mínima: ', min);
+                console.log('Máxima: ', max);
+                console.log('Como está el clima: ', desc.green);
 
                 break;
             case 2:
+                busquedas.historialCapitalizado.forEach((lugar, index) => {
+                    const idx = `${index + 1}.`.green;
+                    console.log(`${idx} ${lugar}`);
+                });
                 break;
         }
 
